@@ -1,7 +1,5 @@
-# sv
 
 # Project Description:
-Everything you need to build a Svelte project, powered by [`sv`](https://github.com/sveltejs/cli).
 
 This project is a comprehensive wildfire dashboard that provides interactive visualizations of wildfire data, allowing users to explore patterns, causes, and trends over time. The application features multiple visualization components including maps, time series charts, pie charts, and bar charts to present wildfire data in an intuitive and informative way.
 
