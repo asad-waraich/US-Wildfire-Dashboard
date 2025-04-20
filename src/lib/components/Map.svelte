@@ -15,6 +15,10 @@
   import MonthlyBarChart from "$lib/components/MonthlyBarChart.svelte";
   import { selectedState } from "$lib/stores/selectedState";
   import { derived } from "svelte/store";
+  import { get } from "svelte/store"; // for reading store directly
+  import { selectedSizeRange } from "$lib/stores/fireFilters"; //  import store
+
+  const sizeRange = get(selectedSizeRange);
 
   const stateAbbreviations = {
     Alabama: "AL",
@@ -129,7 +133,7 @@
 
     projection = d3
       .geoAlbersUsa()
-      .scale(1300)
+      .scale(2000)
       .translate([width / 2, height / 2]);
     const path = d3.geoPath().projection(projection);
 
@@ -201,7 +205,7 @@
           d3.selectAll(".state-label")
             .style("font-weight", "normal")
             .style("fill", "#f0f0f0")
-            .style("font-size", "11px");
+            .style("font-size", "14px");
         } else {
           selectedState.set(stateName);
           selectedStateValue = stateName;
@@ -214,7 +218,7 @@
           d3.selectAll(".state-label")
             .style("font-weight", "normal")
             .style("fill", "#f0f0f0")
-            .style("font-size", "11px");
+            .style("font-size", "14px");
 
           // Highlight this boundary
           d3.select(this).attr("stroke", "#ff6600").attr("stroke-width", 3);
@@ -223,7 +227,7 @@
           d3.select(`.state-label-${stateName.replace(/\s+/g, "-")}`)
             .style("font-weight", "bold")
             .style("fill", "#ffffff")
-            .style("font-size", "14px");
+            .style("font-size", "16px");
         }
 
         console.log(
@@ -260,18 +264,25 @@
       .attr("y", (d) => projection(d.coords)?.[1])
       .attr("text-anchor", "middle")
       .attr("dy", ".35em")
-      .text((d) => d.name)
-      .attr("class", (d) => `state-label-${d.name.replace(/\s+/g, "-")}`)
+      .text((d) => stateAbbreviations[d.name] || d.name)
+      .attr(
+        "class",
+        (d) => `state-label state-label-${d.name.replace(/\s+/g, "-")}`
+      )
       .style("fill", "#f0f0f0")
       .style("font-family", "Inter, sans-serif")
-      .style("font-size", "11px")
+      .style("font-size", "14px") // Default size
       .style("cursor", "pointer")
+      .style("font-weight", "normal")
       .on("mouseover", function (event, d) {
-        // Enlarge text
-        d3.select(this)
-          .style("font-size", "14px")
-          .style("fill", "#ffffff")
-          .style("font-weight", "bold");
+        // Only enlarge if not already selected
+        if (selectedStateValue !== d.name) {
+          // Enlarge text
+          d3.select(this)
+            .style("font-size", "16px")
+            .style("fill", "#ffffff")
+            .style("font-weight", "bold");
+        }
 
         // Highlight matching state outline
         d3.select(`.state-path-${d.name.replace(/\s+/g, "-")}`)
@@ -279,16 +290,19 @@
           .attr("stroke-width", 3);
       })
       .on("mouseout", function (event, d) {
-        // Reset text style
-        d3.select(this)
-          .style("font-size", "11px")
-          .style("fill", "#f0f0f0")
-          .style("font-weight", "normal");
+        // Only reset if not the selected state
+        if (selectedStateValue !== d.name) {
+          // Reset text style to default
+          d3.select(this)
+            .style("font-size", "14px")
+            .style("fill", "#f0f0f0")
+            .style("font-weight", "normal");
+        }
 
         // Reset path if not selected
         d3.select(`.state-path-${d.name.replace(/\s+/g, "-")}`)
-          .attr("stroke", d.name === selectedState ? "#ff6600" : "#999")
-          .attr("stroke-width", d.name === selectedState ? 3 : 1.5);
+          .attr("stroke", d.name === selectedStateValue ? "#ff6600" : "#999")
+          .attr("stroke-width", d.name === selectedStateValue ? 3 : 1.5);
       })
       .on("click", function (event, d) {
         const clickedState = d.name;
@@ -302,6 +316,12 @@
           d3.selectAll(".state-path")
             .attr("stroke", "#999")
             .attr("stroke-width", 1.5);
+
+          // Reset this label
+          d3.select(this)
+            .style("font-size", "14px")
+            .style("font-weight", "normal")
+            .style("fill", "#f0f0f0");
         } else {
           // Set new selected state
           selectedState.set(clickedState);
@@ -312,10 +332,21 @@
             .attr("stroke", "#999")
             .attr("stroke-width", 1.5);
 
+          d3.selectAll(".state-label")
+            .style("font-size", "14px")
+            .style("font-weight", "normal")
+            .style("fill", "#f0f0f0");
+
           // Highlight selected path
           d3.select(`.state-path-${clickedState.replace(/\s+/g, "-")}`)
             .attr("stroke", "#ff6600")
             .attr("stroke-width", 3);
+
+          // Highlight this label
+          d3.select(this)
+            .style("font-size", "18px") // Make selected state larger
+            .style("font-weight", "bold")
+            .style("fill", "#ffffff");
         }
       });
 
@@ -369,7 +400,7 @@
       sizeScale = d3
         .scaleSqrt()
         .domain([0, maxFireSize])
-        .range([0.5, 5])
+        .range([0.5, 8])
         .clamp(true);
 
       maxDuration =
@@ -399,6 +430,7 @@
       return;
 
     const [startYear, endYear] = $yearRange;
+    const sizeRange = get(selectedSizeRange);
     console.log("Drawing fires with filters:", {
       yearRange: [startYear, endYear],
       selectedCauses: $selectedCauses,
@@ -424,12 +456,16 @@
           d.discoveryDate.getFullYear() === $selectedMonthYear.getFullYear() &&
           d.discoveryDate.getMonth() === $selectedMonthYear.getMonth());
 
+      const matchesSize =
+        !sizeRange || (d.size >= sizeRange[0] && d.size <= sizeRange[1]); // 🆕
+
       return (
         inYearRange &&
         matchesCause &&
         matchesState &&
         matchesMonth &&
-        matchesSelectedMY
+        matchesSelectedMY &&
+        matchesSize
       );
     });
 
@@ -509,7 +545,7 @@
     d3.select("#duration-legend").remove();
     d3.select("#size-legend").remove();
     const svg = d3.select(svgElement);
-    drawSizeLegend(svg);
+    drawSizeLegend(svg, get(selectedSizeRange));
     drawDurationLegend(svg);
   }
 
@@ -577,7 +613,7 @@
       .text(`Long (${Math.round(maxDuration || 0)} days)`);
   }
 
-  function drawSizeLegend(svg) {
+  function drawSizeLegend(svg, currentSizeRange) {
     if (!sizeScale) return;
 
     const legendGroup = svg
@@ -585,10 +621,13 @@
       .attr("id", "size-legend")
       .attr("transform", `translate(${svgElement.clientWidth - 340}, 230)`);
 
-    legendGroup
+    // Define better spaced size ranges
+    const sizes = [500, 5000, 25244]; // Using your exact values from the image
+
+    const rect = legendGroup
       .append("rect")
       .attr("width", 230)
-      .attr("height", 160)
+      .attr("height", 200) // Increased height to prevent overlapping
       .attr("fill", "rgba(30, 30, 30, 0.8)")
       .attr("rx", 8)
       .attr("ry", 8);
@@ -602,27 +641,145 @@
       .attr("font-weight", "bold")
       .text("Fire Size");
 
-    const sizes = [0.2, 0.5, 1].map((f) =>
-      sizeScale.invert(f * sizeScale.range()[1])
-    );
+    // Add a display for the currently selected range (if any)
+    const rangeText = legendGroup
+      .append("text")
+      .attr("x", 20)
+      .attr("y", 55)
+      .attr("fill", "#ff4500")
+      .attr("font-weight", "bold")
+      .attr("font-size", "16px");
+
+    if (currentSizeRange) {
+      rangeText.text(
+        `${Math.round(currentSizeRange[0])} ≤ size ≤ ${Math.round(currentSizeRange[1])} acres`
+      );
+    } else {
+      rangeText.text("All sizes shown");
+    }
+
+    // Store references to all circles for easier updating
+    const circles = [];
 
     sizes.forEach((size, i) => {
-      const y = 70 + i * 35;
-      legendGroup
+      // Increase vertical spacing to prevent overlap
+      const y = 90 + i * 55; // Increased from 35 to 45
+      const r = sizeScale(size) * 3.5;
+
+      // Define the range for this size category
+      const rangeStart = i === 0 ? 0 : sizes[i - 1];
+      const rangeEnd = size;
+
+      const isSelected =
+        currentSizeRange &&
+        currentSizeRange[0] === rangeStart &&
+        currentSizeRange[1] === rangeEnd;
+
+      // Create the circle and store its reference
+      const circle = legendGroup
         .append("circle")
         .attr("cx", 35)
         .attr("cy", y)
-        .attr("r", sizeScale(size) * 3.5)
-        .attr("fill", "#ff7800")
-        .attr("opacity", 0.9);
+        .attr("r", r)
+        .attr("fill", isSelected ? "#ff4500" : "#ff7800") // Reddish-orange when selected
+        .attr("opacity", 0.9)
+        .attr("stroke", isSelected ? "#fff" : "none")
+        .attr("stroke-width", isSelected ? 3 : 0)
+        .style("cursor", "pointer")
+        .attr("data-index", i) // Store index for reference
+        .on("click", function () {
+          // Use function() to access 'this'
+          const current = get(selectedSizeRange);
+          const newRange = [rangeStart, rangeEnd];
+          const clickedCircle = this;
+
+          // Toggle logic
+          if (
+            current &&
+            current[0] === newRange[0] &&
+            current[1] === newRange[1]
+          ) {
+            // Deselect this range
+            selectedSizeRange.set(null);
+            rangeText.text("All sizes shown");
+
+            // Reset this circle's appearance
+            d3.select(clickedCircle)
+              .attr("fill", "#ff7800")
+              .attr("stroke", "none")
+              .attr("stroke-width", 0);
+          } else {
+            // Select this range
+            selectedSizeRange.set(newRange);
+            rangeText.text(
+              `${Math.round(rangeStart)} ≤ size ≤ ${Math.round(rangeEnd)} acres`
+            );
+
+            // Reset all circles first
+            circles.forEach((c) => {
+              d3.select(c)
+                .attr("fill", "#ff7800")
+                .attr("stroke", "none")
+                .attr("stroke-width", 0);
+            });
+
+            // Then highlight this circle
+            d3.select(clickedCircle)
+              .attr("fill", "#ff4500")
+              .attr("stroke", "#fff")
+              .attr("stroke-width", 3);
+          }
+
+          // We don't need to call drawLegends() which would redraw everything
+          // and potentially cause flickering - we're updating directly
+        });
+
+      circles.push(circle.node()); // Store DOM element reference
+
+      // Range text next to each circle
       legendGroup
         .append("text")
         .attr("x", 75)
         .attr("y", y + 5)
         .attr("fill", "#fff")
         .attr("font-size", "18px")
-        .text(`${Math.round(size)} acres`);
+        .text(`${rangeStart} - ${size} acres`);
     });
+
+    // Add this section if you want a "Reset" button
+    legendGroup
+      .append("rect")
+      .attr("x", 20)
+      .attr("y", 230)
+      .attr("width", 190)
+      .attr("height", 30)
+      .attr("fill", "#555")
+      .attr("rx", 4)
+      .attr("ry", 4)
+      .style("cursor", "pointer")
+      .on("click", function () {
+        // Clear the selection
+        selectedSizeRange.set(null);
+        rangeText.text("All sizes shown");
+
+        // Reset all circles
+        circles.forEach((c) => {
+          d3.select(c)
+            .attr("fill", "#ff7800")
+            .attr("stroke", "none")
+            .attr("stroke-width", 0);
+        });
+      });
+
+    legendGroup
+      .append("text")
+      .attr("x", 115)
+      .attr("y", 250)
+      .attr("text-anchor", "middle")
+      .attr("fill", "#fff")
+      .attr("font-size", "14px")
+      .text("Reset Size Filter")
+      .style("pointer-events", "none");
   }
 
   // 🆕 Include $selectedMonthYear in the reactive redraw condition:
@@ -631,13 +788,17 @@
     $selectedCauses ||
     selectedStateValue ||
     $selectedMonth !== null ||
-    $selectedMonthYear !== null
+    $selectedMonthYear !== null ||
+    $selectedSizeRange !== null
   ) {
     drawFires();
   }
+  // $: $selectedSizeRange; // reactive dependency
+  // drawLegends();
 
   $: {
     const [startYear, endYear] = $yearRange || [2000, 2025];
+    const sizeRange = get(selectedSizeRange); // ✅ include sizeRange
 
     filteredWildfires = allWildfires.filter((d) => {
       const inYearRange = d.year >= startYear && d.year <= endYear;
@@ -646,14 +807,17 @@
       const matchesState = selectedStateValue
         ? d.state === stateAbbreviations[selectedStateValue]
         : true;
+      const matchesSize =
+        !sizeRange || (d.size >= sizeRange[0] && d.size <= sizeRange[1]); // ✅ add this
 
-      return inYearRange && matchesCause && matchesState;
+      return inYearRange && matchesCause && matchesState && matchesSize;
     });
 
     console.group("🔥 Wildfire Filter Debug");
     console.log("Selected State:", selectedStateValue || "None");
     console.log("Selected Causes:", $selectedCauses);
     console.log("Year Range:", $yearRange);
+    console.log("Size Range:", sizeRange || "None");
     console.log("All Wildfires (Map):", allWildfires.length);
     console.log("Filtered Wildfires (Charts):", filteredWildfires.length);
     console.groupEnd();
@@ -682,55 +846,52 @@
 </div>
 
 <style>
-  /* Global styles to make page fill screen */
-  :global(body),
-  :global(html) {
-    margin: 0;
-    padding: 0;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
-    background-color: "white";
-  }
-
-  /* Outer wrapper to control total layout */
   .page-wrapper {
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
-    width: 100vw;
-    overflow: hidden;
+    display: grid;
+    /* grid-template-rows: 1fr 1fr; map vs. charts */
+    grid-template-rows: 60% 40%; /* More room for the map */
+    gap: var(--spacing-lg);
+    height: 100%;
+    width: 100%;
+    padding: var(--spacing-md);
+    box-sizing: border-box;
+
+    min-height: 0;
   }
 
   .map-container {
-    height: 50vh;
-    width: 100%;
-    border-bottom: 2px solid #444;
+    padding: var(--spacing-sm);
     background-color: #1e1e1e;
+    /* border: 1px solid #444; */
+    border-radius: 0.5rem;
   }
 
   .bottom-charts {
-    height: 50vh; /* 💥 force bottom to stay inside */
-    display: flex;
-    width: 100%;
-    background-color: #1e1e1e;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-md);
+    overflow: hidden;
   }
 
   .chart-wrapper {
-    flex: 1;
-    height: 100%;
-    overflow: hidden; /* 💥 prevents D3 SVG from spilling out */
-    position: relative;
+    padding: var(--spacing-sm);
+    border: 1px solid #444;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    background-color: #1e1e1e;
+
+    min-height: 0;
+    overflow: hidden;
   }
 
   .tooltip {
     position: fixed;
     background-color: rgba(30, 30, 30, 0.95);
-    color: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-family: "Inter", sans-serif;
+    color: #fff;
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 0.25rem;
+    font-size: 0.875rem; /* 14px */
+    line-height: 1.4;
     pointer-events: none;
     z-index: 1000;
     border: 1px solid #555;

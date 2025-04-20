@@ -4,12 +4,18 @@
     yearRange,
     selectedCauses,
     selectedMonthYear,
+    selectedSizeRange,
   } from "$lib/stores/fireFilters";
   import * as d3 from "d3";
 
   export let wildfireData = [];
 
   let container: HTMLDivElement;
+  let currentSizeRange = null;
+  const unsubscribeSize = selectedSizeRange.subscribe((val) => {
+    currentSizeRange = val;
+    requestAnimationFrame(() => draw());
+  });
 
   // Keep track of filters
   let currentYearRange = [2000, 2020];
@@ -76,7 +82,9 @@
         d.year >= startYear &&
         d.year <= endYear &&
         d.discoveryDate instanceof Date &&
-        !isNaN(d.discoveryDate.getTime())
+        !isNaN(d.discoveryDate.getTime()) &&
+        (!currentSizeRange ||
+          (d.size >= currentSizeRange[0] && d.size <= currentSizeRange[1]))
     );
 
     // 1) Compute binned "Total" by month — aggregator has both count and total area
@@ -156,6 +164,20 @@
     });
   }
 
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  const debouncedDraw = debounce(draw, 250);
+
   onMount(() => {
     // Initial draw
     requestAnimationFrame(() => {
@@ -185,18 +207,14 @@
     });
 
     // Resize handler
-    const handleResize = () => {
-      requestAnimationFrame(() => {
-        draw();
-      });
-    };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", debouncedDraw);
 
     return () => {
       unsubscribe1();
       unsubscribe2();
       unsubscribe3();
-      window.removeEventListener("resize", handleResize);
+      unsubscribeSize();
+      window.removeEventListener("resize", debouncedDraw);
     };
   });
 
@@ -208,9 +226,9 @@
       d3.select(container).selectAll("*").remove();
 
       // Create empty chart with message
-      const margin = { top: 40, right: 40, bottom: 70, left: 220 };
+      const margin = { top: 40, right: 40, bottom: 70, left: 180 };
       const width = container.clientWidth - margin.left - margin.right;
-      const height = 600 - margin.top - margin.bottom;
+      const height = container.clientHeight - margin.top - margin.bottom;
 
       const svg = d3
         .select(container)
@@ -276,6 +294,29 @@
         .attr("transform", "rotate(-45)")
         .style("text-anchor", "end");
 
+      // Y-axis label
+      svg
+        .append("text")
+        .attr("x", -height / 2)
+        .attr("y", -40)
+        .attr("transform", "rotate(-90)")
+        .attr("fill", "#ffffff")
+        .attr("font-size", `${Math.max(18, Math.min(24, width / 35))}px`)
+        .attr("font-weight", "bold")
+        .style("text-anchor", "middle")
+        .text("Number of Wildfires");
+
+      // X-axis label
+      svg
+        .append("text")
+        .attr("x", width / 2)
+        .attr("y", height + 70)
+        .attr("fill", "#ffffff")
+        .attr("font-size", `${Math.max(18, Math.min(24, width / 35))}px`)
+        .attr("font-weight", "bold")
+        .style("text-anchor", "middle")
+        .text("Date");
+
       // Title
       svg
         .append("text")
@@ -307,9 +348,9 @@
     const allData = Object.values(groupedByCause).flat();
     if (allData.length === 0) {
       // Same fallback for empty data
-      const margin = { top: 40, right: 40, bottom: 70, left: 220 };
+      const margin = { top: 40, right: 40, bottom: 70, left: 180 };
       const width = container.clientWidth - margin.left - margin.right;
-      const height = 600 - margin.top - margin.bottom;
+      const height = container.clientHeight - margin.top - margin.bottom;
 
       const svg = d3
         .select(container)
@@ -353,7 +394,7 @@
             .tickFormat(d3.timeFormat("Q%q %Y"))
         )
         .attr("color", "#aaa")
-        .attr("font-size", "12px")
+        .attr("font-size", "14px")
         .selectAll("text")
         .attr("transform", "rotate(-45)")
         .style("text-anchor", "end");
@@ -365,18 +406,18 @@
         .attr("y", -50)
         .attr("transform", "rotate(-90)")
         .attr("fill", "#ffffff")
-        .attr("font-size", "24px")
+        .attr("font-size", `${Math.max(18, Math.min(24, width / 35))}px`)
         .attr("font-weight", "bold")
         .style("text-anchor", "middle")
-        .text("# Fires");
+        .text("Number of Wildfires");
 
       // X-label
       svg
         .append("text")
         .attr("x", width / 2)
-        .attr("y", height + 60)
+        .attr("y", height + 70)
         .attr("fill", "#ffffff")
-        .attr("font-size", "24px")
+        .attr("font-size", `${Math.max(18, Math.min(24, width / 35))}px`)
         .attr("font-weight", "bold")
         .style("text-anchor", "middle")
         .text("Date");
@@ -388,7 +429,7 @@
         .attr("y", -15)
         .attr("text-anchor", "middle")
         .attr("fill", "#ffffff")
-        .attr("font-size", "30px")
+        .attr("font-size", `${Math.max(22, Math.min(30, width / 25))}px`)
         .attr("font-weight", "bold")
         .text("Wildfire Frequency by Cause Over Time");
 
@@ -425,9 +466,9 @@
     }
 
     // 4) Chart dimensions
-    const margin = { top: 40, right: 40, bottom: 70, left: 220 };
+    const margin = { top: 40, right: 40, bottom: 70, left: 180 };
     const width = container.clientWidth - margin.left - margin.right;
-    const height = 600 - margin.top - margin.bottom;
+    const height = container.clientHeight - margin.top - margin.bottom;
     const svg = d3
       .select(container)
       .append("svg")
@@ -500,7 +541,7 @@
           .tickFormat(d3.timeFormat("Q%q %Y"))
       )
       .attr("color", "#aaa")
-      .attr("font-size", "12px")
+      .attr("font-size", "14px")
       .selectAll("text")
       .attr("transform", "rotate(-45)")
       .style("text-anchor", "end");
@@ -512,18 +553,18 @@
       .attr("y", -40)
       .attr("transform", "rotate(-90)")
       .attr("fill", "#ffffff")
-      .attr("font-size", "24px")
+      .attr("font-size", `${Math.max(18, Math.min(24, width / 35))}px`)
       .attr("font-weight", "bold")
       .style("text-anchor", "middle")
-      .text("# Fires");
+      .text("Number of Wildfires");
 
     // X-axis label
     svg
       .append("text")
       .attr("x", width / 2)
-      .attr("y", height + 60)
+      .attr("y", height + 70)
       .attr("fill", "#ffffff")
-      .attr("font-size", "24px")
+      .attr("font-size", `${Math.max(18, Math.min(24, width / 35))}px`)
       .attr("font-weight", "bold")
       .style("text-anchor", "middle")
       .text("Date");
@@ -535,7 +576,7 @@
       .attr("y", -15)
       .attr("text-anchor", "middle")
       .attr("fill", "#ffffff")
-      .attr("font-size", "30px")
+      .attr("font-size", `${Math.max(22, Math.min(30, width / 25))}px`)
       .attr("font-weight", "bold")
       .text("Wildfire Frequency by Cause Over Time");
 
@@ -843,8 +884,8 @@
 
           // Position the tooltip to the left side instead of right side of the point
           // This ensures it stays within the vertical axis
-          const tooltipX = -205; // Fixed position on the left side
-          const tooltipY = 10; // Small offset from top
+          const tooltipX = x(point.date) + 15; // Position to the right of the point
+          const tooltipY = y(point.count) - 100; // Position above the point
 
           // Build tooltip HTML content
           let tooltipHtml = `
@@ -865,8 +906,8 @@
           // Create tooltip with fixed position on the left
           selectionGroup
             .append("foreignObject")
-            .attr("x", tooltipX)
-            .attr("y", tooltipY)
+            .attr("x", Math.min(tooltipX, width - 190)) // Prevent it from going off right edge
+            .attr("y", Math.max(0, tooltipY)) // Prevent it from going off top
             .attr("width", 180) // Narrower width
             .attr("height", 100 + Object.keys(causeProportions).length * 20) // Adjust height based on number of causes
             .append("xhtml:div")

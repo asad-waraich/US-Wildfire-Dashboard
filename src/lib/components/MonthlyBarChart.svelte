@@ -7,11 +7,13 @@
     yearRange,
     selectedCauses,
     selectedState,
+    selectedSizeRange,
   } from "$lib/stores/fireFilters";
 
   export let wildfireData = [];
 
   let container: HTMLDivElement;
+  let currentSizeRange = null;
 
   // Stores
   let currentSelectedState = "None";
@@ -29,15 +31,25 @@
           ? new Date(d.discoveryDate)
           : d.discoveryDate;
 
+      const inYearRange =
+        d.year >= currentYearRange[0] && d.year <= currentYearRange[1];
+      const matchesCause = currentSelectedCauses.includes(d.cause);
+      const matchesState =
+        !currentSelectedState ||
+        currentSelectedState === "None" ||
+        d.state === currentSelectedState;
+
+      const matchesSize =
+        !currentSizeRange ||
+        (d.size >= currentSizeRange[0] && d.size <= currentSizeRange[1]);
+
       return (
         discoveryDate instanceof Date &&
         !isNaN(discoveryDate.getTime()) &&
-        d.year >= currentYearRange[0] &&
-        d.year <= currentYearRange[1] &&
-        currentSelectedCauses.includes(d.cause) &&
-        (!currentSelectedState ||
-          currentSelectedState === "None" ||
-          d.state === currentSelectedState)
+        inYearRange &&
+        matchesCause &&
+        matchesState &&
+        matchesSize // ✅ include size filtering
       );
     });
 
@@ -47,6 +59,7 @@
         currentYearRange,
         currentSelectedCauses,
         currentSelectedState,
+        currentSizeRange,
       }
     );
 
@@ -57,15 +70,20 @@
     if (!container) return;
     d3.select(container).selectAll("*").remove();
 
-    const margin = { top: 40, right: 30, bottom: 60, left: 70 };
-    const innerHeight = 600 - margin.top - margin.bottom;
-    const innerWidth = container.clientWidth - margin.left - margin.right;
+    // Get the actual dimensions of the container
+    const containerWidth = container.clientWidth;
+    const containerHeight = container.clientHeight;
+
+    // Use smaller margins to maximize chart area
+    const margin = { top: 50, right: 20, bottom: 50, left: 90 };
+    const innerHeight = containerHeight - margin.top - margin.bottom;
+    const innerWidth = containerWidth - margin.left - margin.right;
 
     const svg = d3
       .select(container)
       .append("svg")
-      .attr("width", innerWidth + margin.left + margin.right)
-      .attr("height", innerHeight + margin.top + margin.bottom)
+      .attr("width", containerWidth)
+      .attr("height", containerHeight)
       .style("background-color", "#1e1e1e")
       .append("g")
       .attr("transform", `translate(${margin.left},${margin.top})`);
@@ -91,12 +109,15 @@
         filteredData,
         (v) => ({
           count: v.length,
-          // Assuming fireSize or acres is the field for area burnt
-          // Update this field name if it's different in your data
-          totalArea: d3.sum(
-            v,
-            (d) => d.fireSize || d.acres || d.burnedArea || 0
-          ),
+          totalArea: d3.sum(v, (d) => {
+            // Log a sample to see what's available
+            if (v.length > 0 && v.indexOf(d) === 0) {
+              console.log("Sample fire data:", d);
+            }
+
+            // Based on your Map.svelte code, 'size' is the likely property name
+            return d.size || d.fireSize || d.acres || d.burnedArea || 0;
+          }),
         }),
         (d) => {
           const date =
@@ -127,22 +148,40 @@
       .domain([0, d3.max(dataByMonth, (d) => d.count) || 1])
       .nice()
       .range([innerHeight, 0]);
+    svg
+      .append("g")
+      .attr("class", "y-grid")
+      .call(
+        d3
+          .axisLeft(y)
+          .ticks(5)
+          .tickSize(-innerWidth)
+          .tickFormat(() => "")
+      )
+      .selectAll("line")
+      .attr("stroke", "#666") // Lighter gray for dark background
+      .attr("stroke-opacity", 0.3) // Soft appearance
+      .attr("shape-rendering", "crispEdges");
 
-    const tooltip = d3
-      .select("body")
-      .append("div")
-      .attr("class", "tooltip")
-      .style("position", "absolute")
-      .style("visibility", "hidden")
-      .style("background", "rgba(30, 30, 30, 0.95)")
-      .style("color", "white")
-      .style("padding", "8px 12px")
-      .style("border-radius", "6px")
-      .style("font-size", "13px")
-      .style("font-family", "Inter, sans-serif")
-      .style("pointer-events", "none")
-      .style("z-index", "1000")
-      .style("border", "1px solid #555");
+    // Create a persistent tooltip div if it doesn't exist
+    let tooltip = d3.select("body").select(".monthly-chart-tooltip");
+    if (tooltip.empty()) {
+      tooltip = d3
+        .select("body")
+        .append("div")
+        .attr("class", "monthly-chart-tooltip")
+        .style("position", "absolute")
+        .style("visibility", "hidden")
+        .style("background", "rgba(30, 30, 30, 0.95)")
+        .style("color", "white")
+        .style("padding", "8px 12px")
+        .style("border-radius", "6px")
+        .style("font-size", "13px")
+        .style("font-family", "Inter, sans-serif")
+        .style("pointer-events", "none")
+        .style("z-index", "1000")
+        .style("border", "1px solid #555");
+    }
 
     // Axes & Labels
     svg
@@ -150,7 +189,7 @@
       .call(d3.axisLeft(y).ticks(5))
       .attr("color", "#aaa")
       .selectAll("text")
-      .attr("font-size", "14px")
+      .attr("font-size", "12px")
       .attr("font-weight", "bold");
 
     svg
@@ -159,19 +198,21 @@
       .call(d3.axisBottom(x))
       .attr("color", "#aaa")
       .selectAll("text")
-      .attr("font-size", "14px")
+      .attr("font-size", "12px")
       .attr("font-weight", "bold");
 
     // Create info display for selected/hovered month
+    // Position it proportionally to the chart size
+    const infoBoxWidth = Math.min(180, innerWidth * 0.3);
     const infoBox = svg
       .append("g")
       .attr("class", "info-box")
-      .attr("transform", `translate(${innerWidth - 200}, 20)`)
+      .attr("transform", `translate(${innerWidth - infoBoxWidth - 10}, 10)`)
       .style("visibility", "hidden");
 
     infoBox
       .append("rect")
-      .attr("width", 190)
+      .attr("width", infoBoxWidth)
       .attr("height", 80)
       .attr("fill", "rgba(30, 30, 30, 0.8)")
       .attr("rx", 5)
@@ -184,7 +225,7 @@
       .attr("x", 10)
       .attr("y", 25)
       .attr("fill", "#fff")
-      .attr("font-size", "16px")
+      .attr("font-size", "14px")
       .attr("font-weight", "bold");
 
     const infoCount = infoBox
@@ -192,7 +233,7 @@
       .attr("x", 10)
       .attr("y", 45)
       .attr("fill", "#fff")
-      .attr("font-size", "14px");
+      .attr("font-size", "12px");
 
     const infoArea = infoBox
       .append("text")
@@ -212,7 +253,7 @@
       if (d.totalArea >= 1000000) {
         areaDisplay = `${(d.totalArea / 1000000).toFixed(2)} million acres`;
       } else if (d.totalArea >= 1000) {
-        areaDisplay = `${(d.totalArea / 1000).toFixed(2)} thousand acres`;
+        areaDisplay = `${Math.round(d.totalArea)} acres`;
       } else {
         areaDisplay = `${d.totalArea.toFixed(2)} acres`;
       }
@@ -301,14 +342,18 @@
       }
     }
 
-    // Title & Axis Labels
+    // Scale font sizes based on container dimensions
+    const titleFontSize = Math.max(22, Math.min(30, innerWidth / 25));
+    const axisFontSize = Math.max(18, Math.min(24, innerWidth / 35));
+
+    // Title & Axis Labels - with adaptive font sizes
     svg
       .append("text")
       .attr("x", innerWidth / 2)
-      .attr("y", -15)
+      .attr("y", -24)
       .attr("text-anchor", "middle")
       .attr("fill", "#ffffff")
-      .attr("font-size", "30px")
+      .attr("font-size", `${titleFontSize}px`)
       .attr("font-weight", "bold")
       .text("Total Wildfires by Month (Selected Years)");
 
@@ -319,21 +364,38 @@
       .attr("x", -innerHeight / 2)
       .attr("text-anchor", "middle")
       .attr("fill", "#ffffff")
-      .attr("font-size", "24px")
+      .attr("font-size", `${axisFontSize}px`)
+      .attr("font-weight", "bold")
       .text("Number of Wildfires");
 
     svg
       .append("text")
       .attr("x", innerWidth / 2)
-      .attr("y", innerHeight + 45)
+      .attr("y", innerHeight + 40)
       .attr("text-anchor", "middle")
       .attr("fill", "#ffffff")
-      .attr("font-size", "24px")
+      .attr("font-size", `${axisFontSize}px`)
+      .attr("font-weight", "bold")
       .text("Month");
   }
 
+  // Use a debounced resize handler for better performance
+  function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+      const later = () => {
+        clearTimeout(timeout);
+        func(...args);
+      };
+      clearTimeout(timeout);
+      timeout = setTimeout(later, wait);
+    };
+  }
+
+  const debouncedDraw = debounce(draw, 250);
+
   onMount(() => {
-    window.addEventListener("resize", draw);
+    window.addEventListener("resize", debouncedDraw);
 
     const unsub1 = yearRange.subscribe((val) => {
       currentYearRange = val;
@@ -346,6 +408,9 @@
     const unsub3 = selectedState.subscribe((val) => {
       currentSelectedState = val;
     });
+    const unsub4 = selectedSizeRange.subscribe((val) => {
+      currentSizeRange = val;
+    });
 
     // Initial draw
     draw();
@@ -354,7 +419,8 @@
       unsub1();
       unsub2();
       unsub3();
-      window.removeEventListener("resize", draw);
+      unsub4();
+      window.removeEventListener("resize", debouncedDraw);
     };
   });
 </script>
@@ -365,7 +431,16 @@
   .chart-container {
     width: 100%;
     height: 100%;
-    overflow: hidden; /* 🔐 lock chart inside */
+    overflow: hidden;
     box-sizing: border-box;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .chart-container svg {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 </style>

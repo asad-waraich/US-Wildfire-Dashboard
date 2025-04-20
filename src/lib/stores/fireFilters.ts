@@ -6,5 +6,6 @@ export const selectedState = writable("None");
 export const hoveredMonth = writable<number | null>(null);
 export const selectedMonth = writable<number | null>(null);
 export const selectedMonthYear = writable<{ month: number; year: number } | null>(null);
+export const selectedSizeRange = writable<[number, number] | null>(null);
 
 
