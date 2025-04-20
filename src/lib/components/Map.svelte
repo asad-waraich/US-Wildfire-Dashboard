@@ -133,7 +133,7 @@
 
     projection = d3
       .geoAlbersUsa()
-      .scale(2000)
+      .scale(1800)
       .translate([width / 2, height / 2]);
     const path = d3.geoPath().projection(projection);
 
