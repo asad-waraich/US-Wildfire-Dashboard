@@ -2,7 +2,7 @@
 
 This project is a comprehensive wildfire dashboard that provides interactive visualizations of wildfire data, allowing users to explore patterns, causes, and trends over time. The application features multiple visualization components including maps, time series charts, pie charts, and bar charts to present wildfire data in an intuitive and informative way.
 
-![Wildfire Dashboard Screenshot](static/Github Image.png)
+![Wildfire Dashboard Screenshot](./static/Github%20Image.png)
 
 ## Features
 
