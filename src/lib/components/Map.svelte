@@ -852,6 +852,7 @@
     grid-template-rows: 60% 40%; /* More room for the map */
     gap: var(--spacing-lg);
     height: 100%;
+    min-height: 700px; /* ✅ Add this line */
     width: 100%;
     padding: var(--spacing-md);
     box-sizing: border-box;
@@ -862,8 +863,12 @@
   .map-container {
     padding: var(--spacing-sm);
     background-color: #1e1e1e;
-    /* border: 1px solid #444; */
     border-radius: 0.5rem;
+
+    /* ✅ ADD THIS */
+    height: 100%;
+    min-height: 500px;
+    max-height: 100%;
   }
 
   .bottom-charts {
