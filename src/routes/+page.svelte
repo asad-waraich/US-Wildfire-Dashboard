@@ -81,7 +81,10 @@
   }
   .map-wrapper {
     flex: 1;
-    min-height: 0;
+    height: 100%;
+    max-width: 100%;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
   }
 </style>
