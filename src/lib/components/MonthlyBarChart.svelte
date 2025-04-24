@@ -343,8 +343,8 @@
     }
 
     // Scale font sizes based on container dimensions
-    const titleFontSize = Math.max(22, Math.min(30, innerWidth / 25));
-    const axisFontSize = Math.max(18, Math.min(24, innerWidth / 35));
+    const titleFontSize = Math.max(16, Math.min(20, innerWidth / 25));
+    const axisFontSize = Math.max(12, Math.min(14, innerWidth / 35));
 
     // Title & Axis Labels - with adaptive font sizes
     svg

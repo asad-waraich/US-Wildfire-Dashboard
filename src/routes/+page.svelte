@@ -31,34 +31,35 @@
   .page-container {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 100vh;
     width: 100%;
   }
   .page-header {
     background-color: #1e1e1e;
     color: #fff;
-    padding: var(--spacing-md) var(--spacing-md);
-    min-height: 7rem;
+    padding: 0.5rem 1rem;
+    min-height: auto;
   }
   .header-content {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: var(--spacing-xl);
-    max-width: 2000px;
+    gap: auto;
+    max-width: 100%;
     margin: 0 auto;
   }
   .filter-container {
-    min-width: 200px;
+    width: auto;
+    min-width: auto;
   }
   .header-center {
     text-align: center;
-    padding: 0 var(--spacing-md);
+    padding: auto;
     min-width: 800px; /* Added to ensure enough width for the description */
   }
   .page-title {
     margin: 0 0 var(--spacing-sm) 0;
-    font-size: 2.5rem;
+    font-size: 1.2rem;
     font-weight: bold;
     /* sweep from left to right around the center */
     background: radial-gradient(
@@ -74,11 +75,12 @@
   }
   .page-description {
     margin-top: var(--spacing-xs);
-    font-size: 1.5rem;
+    font-size: 0.9rem;
     color: #ffffff;
     font-weight: bold;
     /* white-space: nowrap; */
   }
+
   .map-wrapper {
     flex: 1;
     height: 100%;

@@ -107,7 +107,7 @@
 
     const zoom = d3
       .zoom<SVGSVGElement, unknown>()
-      .scaleExtent([1, 8])
+      .scaleExtent([0.5, 8])
       .on("zoom", (event) => zoomGroup.attr("transform", event.transform));
 
     svg.call(zoom).on("wheel", function (event) {
@@ -116,7 +116,7 @@
         const direction = event.deltaY > 0 ? -1 : 1;
         const factor = direction * 0.2;
         const transform = d3.zoomTransform(this);
-        const newScale = Math.max(1, Math.min(8, transform.k * (1 + factor)));
+        const newScale = Math.max(0.5, Math.min(8, transform.k * (1 + factor)));
         const mouseX = event.offsetX;
         const mouseY = event.offsetY;
         const newTransform = d3.zoomIdentity
@@ -540,6 +540,11 @@
     //   d3.select("#tooltip").style("display", "none");
     // });
   }
+  // Checking Browser Zoom Level
+function getBrowserZoomLevel() {
+  const devicePixelRatio = window.devicePixelRatio || 1;
+  return Math.round(devicePixelRatio * 100) / 100;
+}
 
   function drawLegends() {
     d3.select("#duration-legend").remove();
@@ -550,10 +555,16 @@
   }
 
   function drawDurationLegend(svg) {
+
+    const width = svgElement.clientWidth;
+    const zoomLevel = getBrowserZoomLevel();
+    const titleSize = Math.max(16, Math.round(22 / zoomLevel));
+    const labelSize = Math.max(14, Math.round(18 / zoomLevel));
+
     const legendGroup = svg
       .append("g")
       .attr("id", "duration-legend")
-      .attr("transform", `translate(${svgElement.clientWidth - 340}, 120)`);
+      .attr("transform", `translate(${width - 350}, 20)`);
 
     legendGroup
       .append("rect")
@@ -568,7 +579,7 @@
       .attr("x", 20)
       .attr("y", 30)
       .attr("fill", "#fff")
-      .attr("font-size", "22px")
+      .attr("font-size", `${titleSize}px`)
       .attr("font-weight", "bold")
       .text("Fire Duration");
 
@@ -600,7 +611,7 @@
       .attr("x", 20)
       .attr("y", 80)
       .attr("fill", "#fff")
-      .attr("font-size", "18px")
+      .attr("font-size", `${labelSize}px`)
       .text("Short (0 days)");
 
     legendGroup
@@ -608,21 +619,32 @@
       .attr("x", 300)
       .attr("y", 80)
       .attr("fill", "#fff")
-      .attr("font-size", "18px")
+      .attr("font-size", `${labelSize}px`)
       .attr("text-anchor", "end")
       .text(`Long (${Math.round(maxDuration || 0)} days)`);
   }
 
   function drawSizeLegend(svg, currentSizeRange) {
     if (!sizeScale) return;
+    const width = svgElement.clientWidth;
+    const zoomLevel = getBrowserZoomLevel();
+
+      // Calculate responsive font sizes
+    const titleSize = Math.max(16, Math.round(22 / zoomLevel));
+    const subtitleSize = Math.max(14, Math.round(16 / zoomLevel));
+    const labelSize = Math.max(12, Math.round(18 / zoomLevel));
+    const buttonSize = Math.max(14, Math.round(14 / zoomLevel));
+
+    const circleScaleFactor = 1.0 / zoomLevel;
+
 
     const legendGroup = svg
       .append("g")
       .attr("id", "size-legend")
-      .attr("transform", `translate(${svgElement.clientWidth - 340}, 230)`);
+      .attr("transform", `translate(${width - 350}, 130)`); // Same X position, 130px from top
 
     // Define better spaced size ranges
-    const sizes = [500, 5000, 25244]; // Using your exact values from the image
+    const sizes = [3000, 10000, 25244]; // Using your exact values from the image
 
     const rect = legendGroup
       .append("rect")
@@ -637,7 +659,7 @@
       .attr("x", 20)
       .attr("y", 30)
       .attr("fill", "#fff")
-      .attr("font-size", "22px")
+      .attr("font-size", `${titleSize}px`)
       .attr("font-weight", "bold")
       .text("Fire Size");
 
@@ -648,7 +670,7 @@
       .attr("y", 55)
       .attr("fill", "#ff4500")
       .attr("font-weight", "bold")
-      .attr("font-size", "16px");
+      .attr("font-size", `${subtitleSize}px`);
 
     if (currentSizeRange) {
       rangeText.text(
@@ -664,7 +686,7 @@
     sizes.forEach((size, i) => {
       // Increase vertical spacing to prevent overlap
       const y = 90 + i * 55; // Increased from 35 to 45
-      const r = sizeScale(size) * 3.5;
+      const r = sizeScale(size) * 3.5 * circleScaleFactor; // Adjusted radius based on zoom level
 
       // Define the range for this size category
       const rangeStart = i === 0 ? 0 : sizes[i - 1];
@@ -742,7 +764,7 @@
         .attr("x", 75)
         .attr("y", y + 5)
         .attr("fill", "#fff")
-        .attr("font-size", "18px")
+        .attr("font-size", `${labelSize}px`)
         .text(`${rangeStart} - ${size} acres`);
     });
 
@@ -777,7 +799,7 @@
       .attr("y", 250)
       .attr("text-anchor", "middle")
       .attr("fill", "#fff")
-      .attr("font-size", "14px")
+      .attr("font-size", `${buttonSize}px`)
       .text("Reset Size Filter")
       .style("pointer-events", "none");
   }
@@ -850,36 +872,44 @@
     display: grid;
     /* grid-template-rows: 1fr 1fr; map vs. charts */
     grid-template-rows: 60% 40%; /* More room for the map */
-    gap: var(--spacing-lg);
+    gap: auto;
     height: 100%;
-    min-height: 700px; /* ✅ Add this line */
+    min-height: auto; /* ✅ Add this line */
     width: 100%;
-    padding: var(--spacing-md);
+    padding: auto;
     box-sizing: border-box;
+    overflow: hidden;
 
-    min-height: 0;
   }
 
   .map-container {
-    padding: var(--spacing-sm);
+    padding: auto;
     background-color: #1e1e1e;
     border-radius: 0.5rem;
 
     /* ✅ ADD THIS */
-    height: 100%;
-    min-height: 500px;
-    max-height: 100%;
+    height: auto;
+    min-height: auto;
+    max-height: auto;
+    overflow: visible;
   }
+  svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible; /* Also important */
+}
 
   .bottom-charts {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: var(--spacing-md);
+    gap: auto;
     overflow: hidden;
+    height: 100%;
+    min-height: 0;
   }
 
   .chart-wrapper {
-    padding: var(--spacing-sm);
+    padding: auto;
     border: 1px solid #444;
     border-radius: 0.5rem;
     overflow: hidden;
@@ -893,7 +923,7 @@
     position: fixed;
     background-color: rgba(30, 30, 30, 0.95);
     color: #fff;
-    padding: var(--spacing-xs) var(--spacing-sm);
+    padding: auto;
     border-radius: 0.25rem;
     font-size: 0.875rem; /* 14px */
     line-height: 1.4;

@@ -88,10 +88,10 @@
     background: #1c1c1c;
     border: 1px solid #666;
     color: white;
-    padding: 0.4rem 0.75rem;
+    padding: auto;
     border-radius: 6px;
     font-weight: 600;
-    font-size: 0.95rem;
+    font-size: 0.8rem;
     cursor: pointer;
     display: flex;
     align-items: center;

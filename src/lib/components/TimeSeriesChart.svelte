@@ -301,7 +301,7 @@
         .attr("y", -40)
         .attr("transform", "rotate(-90)")
         .attr("fill", "#ffffff")
-        .attr("font-size", `${Math.max(18, Math.min(24, width / 35))}px`)
+        .attr("font-size", `${Math.max(12, Math.min(14, width / 35))}px`)
         .attr("font-weight", "bold")
         .style("text-anchor", "middle")
         .text("Number of Wildfires");
@@ -312,7 +312,7 @@
         .attr("x", width / 2)
         .attr("y", height + 70)
         .attr("fill", "#ffffff")
-        .attr("font-size", `${Math.max(18, Math.min(24, width / 35))}px`)
+        .attr("font-size", `${Math.max(12, Math.min(14, width / 35))}px`)
         .attr("font-weight", "bold")
         .style("text-anchor", "middle")
         .text("Date");
@@ -324,7 +324,7 @@
         .attr("y", -15)
         .attr("text-anchor", "middle")
         .attr("fill", "#ffffff")
-        .attr("font-size", "30px")
+        .attr("font-size", `${Math.max(16, Math.min(20, width / 25))}px`)
         .attr("font-weight", "bold")
         .text("Wildfire Frequency by Cause Over Time");
 
@@ -522,6 +522,7 @@
       .call(d3.axisLeft(y).ticks(5))
       .attr("color", "#aaa")
       .attr("font-size", "12px")
+      
       .call((g) =>
         g
           .selectAll(".tick line")
@@ -553,7 +554,7 @@
       .attr("y", -40)
       .attr("transform", "rotate(-90)")
       .attr("fill", "#ffffff")
-      .attr("font-size", `${Math.max(18, Math.min(24, width / 35))}px`)
+      .attr("font-size", `${Math.max(12, Math.min(14, width / 35))}px`) // Fix this line
       .attr("font-weight", "bold")
       .style("text-anchor", "middle")
       .text("Number of Wildfires");
@@ -564,7 +565,7 @@
       .attr("x", width / 2)
       .attr("y", height + 70)
       .attr("fill", "#ffffff")
-      .attr("font-size", `${Math.max(18, Math.min(24, width / 35))}px`)
+      .attr("font-size", `${Math.max(12, Math.min(14, width / 35))}px`) // Fix this line
       .attr("font-weight", "bold")
       .style("text-anchor", "middle")
       .text("Date");
@@ -576,7 +577,7 @@
       .attr("y", -15)
       .attr("text-anchor", "middle")
       .attr("fill", "#ffffff")
-      .attr("font-size", `${Math.max(22, Math.min(30, width / 25))}px`)
+      .attr("font-size", `${Math.max(16, Math.min(20, width / 25))}px`) // Fix this line
       .attr("font-weight", "bold")
       .text("Wildfire Frequency by Cause Over Time");
 
@@ -686,7 +687,7 @@
         .attr("y", 12)
         .attr("fill", "#fff")
         .text(cause)
-        .attr("font-size", "13px")
+        .attr("font-size", "12px")
         .attr("font-family", "Inter, sans-serif");
     });
 

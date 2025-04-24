@@ -5,6 +5,9 @@
   let max = 2015;
   let start = min;
   let end = max;
+  let singleYearMode = false;
+
+
 
   // Number of ticks at start, middle, end
   const tickCount = 3;
@@ -17,19 +20,30 @@
   });
 
   // Update the shared store whenever start or end changes
-  $: yearRange.set([start, end]);
+  $: yearRange.set(singleYearMode ? [start, start] : [start, end]);
+
+  $:if (singleYearMode) {
+  end = start;
+}
 </script>
+
+
 
 <div class="year-slider-container">
   <!-- Title above the track -->
   <div class="range-values">
     <span class="year-range-label">Year Range</span>
+    <label class="single-year-toggle">
+      <input type="checkbox" bind:checked={singleYearMode}>
+      <span>Single Year</span>
+    </label>
   </div>
 
   <div class="slider-track-container">
     <div class="slider-track"></div>
     <div
       class="slider-track-highlight"
+      class:single-mode={singleYearMode}
       style="left: {((start - min) / (max - min)) * 100}%; right: {100 -
         ((end - min) / (max - min)) * 100}%"
     ></div>
@@ -49,7 +63,7 @@
       class="range-input start-range"
       bind:value={start}
       {min}
-      max={end}
+      max={singleYearMode ? max : end}
       step="1"
     />
     <input
@@ -59,6 +73,7 @@
       min={start}
       {max}
       step="1"
+      disabled={singleYearMode}
     />
   </div>
 </div>
@@ -68,19 +83,20 @@
     width: 100%;
     max-width: 280px;
     margin: 0 auto;
-    padding: 2rem;
+    padding: auto;
     user-select: none;
   }
 
   .range-values {
     display: flex;
-    justify-content: center;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: -1.5rem;
   }
 
   .year-range-label {
     color: #fff;
-    font-size: 1.1rem;
+    font-size: 0.8rem;
     font-weight: 700;
   }
 
@@ -95,7 +111,7 @@
     top: 50%;
     left: 0;
     width: 100%;
-    height: 4px;
+    height: 3px;
     background-color: #444;
     border-radius: 2px;
     transform: translateY(-50%);
@@ -139,7 +155,7 @@
     top: 100%;
     left: 50%;
     transform: translateX(-50%);
-    font-size: 0.75rem;
+    font-size: 0.6rem;
     color: #aaa;
     white-space: nowrap;
     font-weight: 700;
@@ -196,4 +212,48 @@
     height: 4px;
     background: transparent;
   }
+  .single-year-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: #aaa;
+  cursor: pointer;
+  padding: 4px;
+  z-index: 10;
+  position: relative;
+}
+
+.single-year-toggle input {
+  cursor: pointer;
+  width: 12px;
+  height: 12px;
+}
+
+/* Add this to style the disabled thumb when in single year mode */
+.range-input:disabled::-webkit-slider-thumb {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.range-input:disabled::-moz-range-thumb {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.slider-track-highlight.single-mode {
+  background-color: #ff5500; /* Brighter color for single year */
+  height: 6px; /* Slightly thicker */
+}
+
+.start-range {
+  z-index: 3; /* Lower z-index for start range */
+}
+
+.end-range {
+  z-index: 2; /* Even lower for the end range when in single year mode */
+}
+.single-year-mode .start-range {
+  z-index: 4; /* Higher z-index to ensure it's clickable */
+}
+
 </style>
