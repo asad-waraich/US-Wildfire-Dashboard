@@ -1,108 +1,174 @@
-# Project Description:
+# 🔥 US Wildfire Visualization Dashboard
 
-This project is a comprehensive wildfire dashboard that provides interactive visualizations of wildfire data, allowing users to explore patterns, causes, and trends over time. The application features multiple visualization components including maps, time series charts, pie charts, and bar charts to present wildfire data in an intuitive and informative way.
+_Exploring Wildfire Patterns Across America (2004–2015)_  
+By Muhammad Salman & Asad Ullah Waraich
+
+[🌐 Live Demo (if deployed)](https://your-deployment-link.com)
+
+---
+
+## 🧭 Overview
+
+This interactive dashboard enables users to **explore trends, causes, and spatial patterns** in U.S. wildfire data from **2004 to 2015**. Featuring dynamic D3.js-based visualizations and built with SvelteKit, the dashboard serves researchers, policymakers, and the public in understanding the growing wildfire crisis.
+
+---
+
+## 🎯 Motivation
+
+> “Over 61% of wildfires occurred after 2000.”  
+> With wildfires becoming more frequent and intense, there is a critical need for **accessible, interactive tools** to support:
+
+- 🔬 **Researchers** – studying environmental patterns and climate change
+- 🧑‍⚖️ **Policy Makers** – designing fire prevention and mitigation strategies
+- 🚒 **First Responders** – identifying high-risk seasons and areas
+- 🧑‍🤝‍🧑 **General Public** – understanding fire-prone regions
+
+---
+
+## 🔍 Key Questions Explored
+
+- Do **human-caused** wildfires peak more on **weekends** vs. natural ones?
+- Are **large wildfires** more frequent in **July or August**?
+- Do **western states** like CA & OR see **larger fires** than eastern ones?
+- Which **causes** show spikes in **specific years or months**?
+- How do **cause, size, and duration** interact across seasons?
+
+---
+
+## 📊 Features
+
+- 🗺️ **Interactive US Map** – Filter wildfires by size and duration
+- 📈 **Time Series Chart** – Trends by cause over quarters
+- 🥧 **Cause Distribution** – Pie chart of wildfire causes
+- 📅 **Monthly Trends** – Bar chart by month (aggregated over years)
+- 📍 **Cause & Year Filters** – Drill down into custom data views
+- 📎 **Tooltip Summaries** – Rich insights on hover
+
+---
+
+## 🖼️ Screenshots
+
+### 🧯 Final Dashboard View
 
 ![Wildfire Dashboard Screenshot](/static/Final-Dashboard.png)
 
-## Features
+---
 
-- **Interactive Map**: Visualize wildfire locations and severity
-- **Time Series Analysis**: Track wildfire occurrences over time
-- **Cause Distribution**: Explore the distribution of wildfire causes
-- **Monthly Trends**: View wildfire frequency by month
-- **Year Selection**: Filter data by specific years using a slider
-- **Custom Filtering**: Apply various filters to analyze specific data subsets
+## 🗂️ Dataset
 
-## Creating a project
-If you're seeing this, you've probably already done this step. Congrats!
+- Source: Kaggle ([US Wildfires Dataset](https://www.kaggle.com/datasets/))
+- Cleaned to cover **74,154 wildfire records** from **2004–2015**
+- Features include:
+  - Date of discovery & containment
+  - State, county, coordinates
+  - Cause, duration, and fire size (in acres)
+
+---
+
+## 🛠️ Tech Stack
+
+| Category      | Tools Used                 |
+| ------------- | -------------------------- |
+| Framework     | SvelteKit                  |
+| Visualization | D3.js                      |
+| Language      | TypeScript                 |
+| Styling       | Tailwind CSS               |
+| Build Tool    | Vite                       |
+| Deployment    | Cloudflare Pages / Netlify |
+
+---
+
+## 🚀 Getting Started
+
+### 1. Clone and Install
 
 ```bash
-# create a new project in the current directory
-npx sv create
+git clone https://github.com/yourusername/wildfire-dashboard.git
+cd wildfire-dashboard
+npm install
 
-# create a new project in my-app
-npx sv create my-app
-```
-
-## Developing
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
-
-```bash
 npm run dev
-
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-## Building
-To create a production version of your app:
-
-```bash
 npm run build
-```
+npm run preview
 
-You can preview the production build with `npm run preview`.
 
-> To deploy your app, you may need to install an [adapter](https://svelte.dev/docs/kit/adapters) for your target environment.
-
-## Project Structure
-
-```
 wildfire-dashboard/
 ├── src/
-│   ├── lib/
-│   │   ├── components/
-│   │   │   ├── CauseFilter.svelte
-│   │   │   ├── CausePieChart.svelte
-│   │   │   ├── Map.svelte
-│   │   │   ├── MonthlyBarChart.svelte
-│   │   │   ├── TimeSeriesChart.svelte
-│   │   │   └── YearSlider.svelte
-│   ├── routes/
-│   │   ├── +page.svelte
+│   ├── lib/components/
+│   │   ├── Map.svelte
+│   │   ├── TimeSeriesChart.svelte
+│   │   ├── MonthlyBarChart.svelte
+│   │   ├── CausePieChart.svelte
+│   │   ├── YearSlider.svelte
+│   │   └── CauseFilter.svelte
+│   ├── routes/+page.svelte
 │   ├── stores/
-│   │   ├── fireFilters.ts
-│   │   ├── selectedState.ts
-│   │   └── index.ts
-│   └── data/
-│       └── wildfire_clean.csv
+│   └── data/wildfire_clean.csv
 ├── static/
-└── ...
+│   └── Final-Dashboard.png
+
+
+---
+
+## ⚙️ State Management
+
+The application uses [Svelte stores](https://svelte.dev/docs/svelte-store) to manage shared state across components:
+
+- `fireFilters.ts` – Manages active filters (cause, year range, fire size).
+- `selectedState.ts` – Stores the currently selected U.S. state for zooming or highlighting.
+
+---
+
+## 🎨 Visual Design & Encodings
+
+| Visual Channel   | What It Encodes                              |
+|------------------|-----------------------------------------------|
+| **Position**      | Geographic coordinates / Time in timeline     |
+| **Color (Hue)**   | Wildfire cause or selected highlights         |
+| **Size**          | Burned area (acres) – circle size on map      |
+| **Intensity**     | Fire duration – represented via color scale   |
+| **Texture**       | Line styles to differentiate "Total" vs specific causes |
+
+These channels are carefully chosen for clarity and insight, following principles of perceptual effectiveness and redundancy.
+
+---
+
+## 🧩 Future Improvements
+
+- 🧭 **Dashboard Walkthrough**
+  Integrate in-app onboarding or fine-tuned LLMs for guidance.
+
+- ⏱️ **Finer Granularity Controls**
+  Toggle between monthly, weekly, or quarterly visualizations.
+
+- 🌎 **State-Specific Drilldowns**
+  Enable zoomable views with detailed stats per state.
+
+- 🌐 **Multi-Year Heatmaps**
+  Introduce spatio-temporal heatmaps for long-term climate pattern visualization.
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome!
+
+If you’d like to improve the dashboard, fix a bug, or propose a new feature:
+
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature-name`)
+3. Commit your changes (`git commit -am 'Add new feature'`)
+4. Push to the branch (`git push origin feature-name`)
+5. Create a Pull Request
+
+Please check for open issues before starting new work, and follow our code formatting conventions.
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+You are free to use, modify, and distribute this software for personal and commercial purposes.
+
+---
 ```
-
-## Components
-
-### CauseFilter.svelte
-Provides filtering options for different wildfire causes.
-
-### CausePieChart.svelte
-Displays the distribution of wildfire causes in a pie chart format.
-
-### Map.svelte
-Visualizes geographical distribution of wildfires.
-
-### MonthlyBarChart.svelte
-Shows wildfire frequency by month in a bar chart.
-
-### TimeSeriesChart.svelte
-Displays wildfire trends over time.
-
-### YearSlider.svelte
-Allows filtering of data by selecting specific years.
-
-## State Management
-
-The application uses Svelte stores for state management:
-
-### fireFilters.ts
-Manages filter states for the dashboard.
-
-### selectedState.ts
-Handles the currently selected state or region.
-
-## Data
-
-The application uses preprocessed wildfire data stored in CSV format:
-
-### wildfire_clean.csv
-Contains cleaned and processed wildfire data with attributes like location, time, cause, size, etc.
