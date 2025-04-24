@@ -106,7 +106,7 @@ wildfire-dashboard/
 │   └── data/wildfire_clean.csv
 ├── static/
 │   └── Final-Dashboard.png
-
+```
 
 ---
 
