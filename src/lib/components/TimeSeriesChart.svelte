@@ -25,8 +25,6 @@
   const formatMonth = d3.timeFormat("%Y-%m");
   const parseMonth = d3.timeParse("%Y-%m");
 
-  
-
   // The data structure used by the chart: grouped by cause
   // Each cause -> array of { date, count, area }
   let groupedByCause: Record<
@@ -285,7 +283,7 @@
       const tickInterval = yearSpan <= 3 ? 1 : yearSpan <= 6 ? 3 : 6; // Months between ticks
 
       // Simple fontSize calculation
-      const fontSize = yearSpan <= 3 ? 12 : yearSpan <= 6 ? 10 : 9;
+      const fontSize = yearSpan <= 3 ? 11 : yearSpan <= 6 ? 9 : 7;
       svg
         .append("g")
         .attr("transform", `translate(0,${height})`)
@@ -529,7 +527,7 @@
       .call(d3.axisLeft(y).ticks(5))
       .attr("color", "#aaa")
       .attr("font-size", "12px")
-      
+
       .call((g) =>
         g
           .selectAll(".tick line")

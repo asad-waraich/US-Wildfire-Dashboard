@@ -11,7 +11,7 @@
         <CauseFilter />
       </div>
       <div class="header-center">
-        <h1 class="page-title">🔥US Wildfire Visualization🔥</h1>
+        <h1 class="page-title">US Wildfire Visualization</h1>
         <p class="page-description">
           Explore wildfire patterns across the US. Adjust the year range and
           filter by cause

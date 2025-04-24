@@ -133,7 +133,7 @@
 
     projection = d3
       .geoAlbersUsa()
-      .scale(1800)
+      .scale(900)
       .translate([width / 2, height / 2]);
     const path = d3.geoPath().projection(projection);
 
@@ -541,10 +541,10 @@
     // });
   }
   // Checking Browser Zoom Level
-function getBrowserZoomLevel() {
-  const devicePixelRatio = window.devicePixelRatio || 1;
-  return Math.round(devicePixelRatio * 100) / 100;
-}
+  function getBrowserZoomLevel() {
+    const devicePixelRatio = window.devicePixelRatio || 1;
+    return Math.round(devicePixelRatio * 100) / 100;
+  }
 
   function drawLegends() {
     d3.select("#duration-legend").remove();
@@ -555,7 +555,6 @@ function getBrowserZoomLevel() {
   }
 
   function drawDurationLegend(svg) {
-
     const width = svgElement.clientWidth;
     const zoomLevel = getBrowserZoomLevel();
     const titleSize = Math.max(16, Math.round(22 / zoomLevel));
@@ -629,14 +628,13 @@ function getBrowserZoomLevel() {
     const width = svgElement.clientWidth;
     const zoomLevel = getBrowserZoomLevel();
 
-      // Calculate responsive font sizes
+    // Calculate responsive font sizes
     const titleSize = Math.max(16, Math.round(22 / zoomLevel));
     const subtitleSize = Math.max(14, Math.round(16 / zoomLevel));
     const labelSize = Math.max(12, Math.round(18 / zoomLevel));
     const buttonSize = Math.max(14, Math.round(14 / zoomLevel));
 
     const circleScaleFactor = 1.0 / zoomLevel;
-
 
     const legendGroup = svg
       .append("g")
@@ -648,8 +646,8 @@ function getBrowserZoomLevel() {
 
     const rect = legendGroup
       .append("rect")
-      .attr("width", 230)
-      .attr("height", 200) // Increased height to prevent overlapping
+      .attr("width", 100)
+      .attr("height", 150) // Increased height to prevent overlapping
       .attr("fill", "rgba(30, 30, 30, 0.8)")
       .attr("rx", 8)
       .attr("ry", 8);
@@ -879,7 +877,6 @@ function getBrowserZoomLevel() {
     padding: auto;
     box-sizing: border-box;
     overflow: hidden;
-
   }
 
   .map-container {
@@ -894,10 +891,10 @@ function getBrowserZoomLevel() {
     overflow: visible;
   }
   svg {
-  width: 100%;
-  height: 100%;
-  overflow: visible; /* Also important */
-}
+    width: 100%;
+    height: 100%;
+    overflow: visible; /* Also important */
+  }
 
   .bottom-charts {
     display: grid;
