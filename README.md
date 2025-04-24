@@ -3,7 +3,7 @@
 _Exploring Wildfire Patterns Across America (2004–2015)_  
 By Muhammad Salman & Asad Ullah Waraich
 
-[🌐 Live Demo (if deployed)](https://569ca5ff.us-wildfires.pages.dev)
+[🌐 Dashboard Link](https://569ca5ff.us-wildfires.pages.dev)
 
 ---
 
