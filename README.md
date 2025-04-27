@@ -1,7 +1,7 @@
 # 🔥 US Wildfire Visualization Dashboard
 
 _Exploring Wildfire Patterns Across America (2004–2015)_  
-By Muhammad Salman & Asad Ullah Waraich
+### By Muhammad Salman & Asad Ullah Waraich
 
 [🌐 Dashboard Link](https://569ca5ff.us-wildfires.pages.dev)
 
